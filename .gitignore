@@ -1,0 +1,79 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller build folders and executables
+build/
+dist/
+*.spec
+
+# YOLO/Ultralytics output folders
+runs/
+weights/
+*.pt
+*.onnx
+
+# VSCode & other IDE configs
+.vscode/
+.idea/
+*.swp
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Log files
+*.log
+
+# Environment files
+.env
+.env.*
+
+# OS junk files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Nuitka/MingW/C++ build junk (if you try Nuitka again)
+*.build/
+*.o
+*.obj
+*.pyd
+*.pyo
+*.dll
+*.so
+*.manifest
+
+# Pip wheel caches
+pip-wheel-metadata/
+*.egg-info/
+.eggs/
+
+# Test output
+htmlcov/
+.coverage
+.tox/
+.nox/
+
+# If you use a settings file you want to keep local-only, uncomment:
+# settings.cfg
+
+# Exclude user-created/temporary files
+*.tmp
+*.bak
+
+# If you use 7z/zip/rar for dist:
+*.7z
+*.zip
+*.rar
+
+# Python virtual environments (choose your folder name)
+venv/
+.venv/
+env/
+ENV/
+
+# Data folders you don’t want in git (adjust if needed)
+data/
+dataset/
+fish_yolo_dataset/
