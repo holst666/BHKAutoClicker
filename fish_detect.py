@@ -7,7 +7,7 @@ import cv2
 from util import resource_path
 from ultralytics import YOLO
 
-YOLO_MODEL_PATH = resource_path("best.pt")
+YOLO_MODEL_PATH = resource_path("model/OrangeFish.pt")
 WINDOW_TITLE = "Clicker Heroes"
 DETECTION_INTERVAL = 10  # seconds
 CONFIDENCE_THRESHOLD = 0.8
@@ -18,12 +18,14 @@ model = YOLO(YOLO_MODEL_PATH)
 model.to('cpu')  # Force CPU (works with torch>=2)
 
 def detect_fish_loop(app_state):
+    print("[DetectFish] Thread started.")
     global FISH_COUNTER
     FISH_COUNTER = 0
     while app_state["running"] and app_state["fish_detect_enabled"]:
-        print("Starting detect fish loop")
         detect_fish_and_click(app_state)
         time.sleep(10)
+
+    print("[DetectFish] Thread stopped.")
 
 def get_window_bbox():
     windows = gw.getWindowsWithTitle(WINDOW_TITLE)
@@ -62,10 +64,13 @@ def detect_fish_and_click(app_state):
             if app_state["running"] and not app_state["pause_event"].is_set():
                 app_state["pause_event"].set()
                 time.sleep(0.1)
+                currentX, currentY = pyautogui.position()
                 print(f"Fish detected at: ({fish_cx}, {fish_cy}) with confidence {best_conf:.2f}. Clicking.")
                 pyautogui.moveTo(fish_cx, fish_cy, duration=0.1)
                 pyautogui.click()
                 FISH_COUNTER += 1
+                time.sleep(0.1)
+                pyautogui.moveTo(currentX, currentY, duration=0.1)
                 print("Clicked " + str(FISH_COUNTER) + " this session")
                 app_state["pause_event"].clear()
             else:

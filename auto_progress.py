@@ -2,6 +2,12 @@ import time
 import pyautogui
 import win32gui
 from image_detect import detect_object_in_window
+from util import resource_path
+
+MODEL_PATH = resource_path("model\progress.pt")
+CONFIDENCE = 0.85
+WINDOW_TITLE = "Clicker Heroes"
+
 
 def auto_progress_loop(app_state, timer_var):
     """Run in a thread: scans, waits, presses 'a' if object found."""
@@ -15,10 +21,9 @@ def auto_progress_loop(app_state, timer_var):
             time.sleep(1)
         # Scan for template
         found, confidence, loc = detect_object_in_window(
-            window_title="Clicker Heroes",
-            template_path="templates/progress_stopped.png",
-            confidence_threshold=0.98,
-            debug_save_path="auto_progress_debug.png"
+            window_title=WINDOW_TITLE,
+            model_path=MODEL_PATH,
+            confidence_threshold=CONFIDENCE
         )
         print(f"[AutoProgress] Detected={found}, Confidence={confidence:.3f}")
         if found:

@@ -1,48 +1,45 @@
-import cv2
-import numpy as np
 import mss
-import win32gui
-import os
+import pygetwindow as gw
+import numpy as np
+import cv2
+from ultralytics import YOLO
 
 def detect_object_in_window(
     window_title,
-    template_path,
-    confidence_threshold=0.98,
-    debug_save_path=None
+    model_path,
+    confidence_threshold=0.8
 ):
-    """Returns (found: bool, confidence: float, location: tuple or None)"""
-    if not os.path.exists(template_path):
-        print(f"[Detect] Template '{template_path}' not found!")
-        return False, 0.0, None
-    template = cv2.imread(template_path, cv2.IMREAD_UNCHANGED)
-    if template is None:
-        print(f"[Detect] Could not read template: {template_path}")
-        return False, 0.0, None
-    if template.shape[2] == 4:
-        template_bgr = cv2.cvtColor(template, cv2.COLOR_BGRA2BGR)
-        mask = template[:, :, 3]
-        mask_bin = (mask > 250).astype(np.uint8) * 255
-    else:
-        template_bgr = template
-        mask_bin = None
-    th, tw = template_bgr.shape[:2]
-    hwnd = win32gui.FindWindow(None, window_title)
-    if not hwnd:
+    """
+    Returns (found: bool, confidence: float, bbox: (x1, y1, x2, y2) or None)
+    """
+    # Load YOLO model
+    model = YOLO(model_path)
+    
+    # Find window and grab screenshot
+    windows = gw.getWindowsWithTitle(window_title)
+    if not windows:
         print(f"[Detect] Game window '{window_title}' not found!")
         return False, 0.0, None
-    l, t, r, b = win32gui.GetWindowRect(hwnd)
+    win = windows[0]
+    left, top, width, height = win.left, win.top, win.width, win.height
+
     with mss.mss() as sct:
-        monitor = {"top": t, "left": l, "width": r - l, "height": b - t}
+        monitor = {"top": top, "left": left, "width": width, "height": height}
         sct_img = sct.grab(monitor)
-        img = np.array(sct_img)[..., :3]
-    if img.shape[2] == 4:
+        img = np.array(sct_img)
         img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-    result = cv2.matchTemplate(img, template_bgr, cv2.TM_CCORR_NORMED, mask=mask_bin)
-    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-    found = max_val > confidence_threshold
-    if debug_save_path:
-        img_copy = img.copy()
-        if found:
-            cv2.rectangle(img_copy, max_loc, (max_loc[0] + tw, max_loc[1] + th), (0,0,255), 2)
-        cv2.imwrite(debug_save_path, img_copy)
-    return found, max_val, max_loc if found else None
+
+    # Run YOLO inference
+    results = model(img)
+    boxes = results[0].boxes
+    if boxes is not None and len(boxes) > 0:
+        confs = boxes.conf.cpu().numpy()
+        best_idx = int(np.argmax(confs))
+        best_conf = confs[best_idx]
+        if best_conf >= confidence_threshold:
+            box = boxes.xyxy[best_idx].cpu().numpy()
+            return True, float(best_conf), tuple(map(int, box))
+        else:
+            return False, float(best_conf), None
+    else:
+        return False, 0.0, None

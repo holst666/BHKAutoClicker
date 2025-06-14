@@ -13,6 +13,10 @@ runs/
 weights/
 *.pt
 *.onnx
+progress_yolo_dataset/
+# EXCEPTION: Keep model/ folder and its contents (even .pt files)
+!model/
+!model/*.pt
 
 # VSCode & other IDE configs
 .vscode/
@@ -77,3 +81,10 @@ ENV/
 data/
 dataset/
 fish_yolo_dataset/
+
+# Python virtual environments
+yolo-gpu-env/
+yolo-cpu-env/
+venv/
+.env/
+*.env/
